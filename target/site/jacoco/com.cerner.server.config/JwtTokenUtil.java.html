@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtTokenUtil.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-jwt</a> &gt; <a href="index.source.html" class="el_package">com.cerner.server.config</a> &gt; <span class="el_source">JwtTokenUtil.java</span></div><h1>JwtTokenUtil.java</h1><pre class="source lang-java linenums">package com.cerner.server.config;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+/**
+ * This includes functions required for extracting information from a token,generation of a token,and validation of a token.
+ * token  A unique combination of different types of information encrypted in a string, generated when a request is made.
+ */
+@Component
+<span class="fc" id="L18">public class JwtTokenUtil implements Serializable {</span>
+	private static final long serialVersionUID = -2550185165626007488L;
+	public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+	@Value(&quot;${jwt.secret}&quot;)
+	private String secret;
+	public String getUsernameFromToken(String token) {
+<span class="nc" id="L24">		return getClaimFromToken(token, Claims::getSubject);</span>
+	}
+	public Date getExpirationDateFromToken(String token) {
+<span class="nc" id="L27">		return getClaimFromToken(token, Claims::getExpiration);</span>
+	}
+	public &lt;T&gt; T getClaimFromToken(String token, Function&lt;Claims, T&gt; claimsResolver) {
+<span class="nc" id="L30">		final Claims claims = getAllClaimsFromToken(token);</span>
+<span class="nc" id="L31">		return claimsResolver.apply(claims);</span>
+	}
+	private Claims getAllClaimsFromToken(String token) {
+<span class="nc" id="L34">		return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();</span>
+	}
+	private Boolean isTokenExpired(String token) {
+<span class="nc" id="L37">		final Date expiration = getExpirationDateFromToken(token);</span>
+<span class="nc" id="L38">		return expiration.before(new Date());</span>
+	}
+	public String generateToken(UserDetails userDetails) {
+<span class="fc" id="L41">		Map&lt;String, Object&gt; claims = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L42">		return doGenerateToken(claims, userDetails.getUsername());</span>
+	}
+	private String doGenerateToken(Map&lt;String, Object&gt; claims, String subject) {
+<span class="fc" id="L45">		return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))</span>
+<span class="fc" id="L46">				.setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))</span>
+<span class="fc" id="L47">				.signWith(SignatureAlgorithm.HS512, secret).compact();</span>
+	}
+	public Boolean validateToken(String token, UserDetails userDetails) {
+<span class="nc" id="L50">		final String username = getUsernameFromToken(token);</span>
+<span class="nc bnc" id="L51" title="All 4 branches missed.">		return (username.equals(userDetails.getUsername()) &amp;&amp; !isTokenExpired(token));</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

@@ -1,0 +1,4 @@
+com\cerner\server\MySQLServerTest.class
+com\cerner\server\service\JwtUserDetailsServiceTest.class
+com\cerner\server\controller\JwtAuthenticationControllerTest.class
+com\cerner\server\config\JwtAuthenticationEntryPointTest.class

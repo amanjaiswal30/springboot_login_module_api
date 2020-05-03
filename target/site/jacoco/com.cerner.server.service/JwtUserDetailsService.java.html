@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtUserDetailsService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-jwt</a> &gt; <a href="index.source.html" class="el_package">com.cerner.server.service</a> &gt; <span class="el_source">JwtUserDetailsService.java</span></div><h1>JwtUserDetailsService.java</h1><pre class="source lang-java linenums">package com.cerner.server.service;
+import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.cerner.server.dao.UserDao;
+import com.cerner.server.model.UserDataAccessObject;
+import com.cerner.server.model.UserDataStoringObject;
+@Service
+<span class="fc" id="L13">public class JwtUserDetailsService implements UserDetailsService {</span>
+	@Autowired
+	private UserDao userDao;
+	@Autowired
+	private PasswordEncoder bcryptEncoder;
+	/**
+	 * This is used for authenticating the username from the database using the UserDao interface.
+	 */
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+<span class="fc" id="L23">		UserDataAccessObject user = userDao.findByUsername(username);</span>
+<span class="fc bfc" id="L24" title="All 2 branches covered.">		if (user == null) {</span>
+<span class="fc" id="L25">			throw new UsernameNotFoundException(&quot;User not found with username&quot;);</span>
+		}
+<span class="fc" id="L27">		return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(),</span>
+				new ArrayList&lt;&gt;());
+	}
+	/**
+	 * @param user parameter entered by the user to signup.
+	 * @return username as a response if data has been successfully stored in the database.
+	 */
+	public UserDataAccessObject save(UserDataStoringObject user) {
+<span class="fc" id="L35">		UserDataAccessObject newUser = new UserDataAccessObject();</span>
+<span class="fc" id="L36">		newUser.setUsername(user.getUsername());</span>
+<span class="fc" id="L37">		newUser.setPassword(bcryptEncoder.encode(user.getPassword()));</span>
+<span class="fc" id="L38">		return userDao.save(newUser);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

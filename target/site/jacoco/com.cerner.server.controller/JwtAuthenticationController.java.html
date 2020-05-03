@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>JwtAuthenticationController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">spring-boot-jwt</a> &gt; <a href="index.source.html" class="el_package">com.cerner.server.controller</a> &gt; <span class="el_source">JwtAuthenticationController.java</span></div><h1>JwtAuthenticationController.java</h1><pre class="source lang-java linenums">package com.cerner.server.controller;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
+import com.cerner.server.service.JwtUserDetailsService;
+import com.cerner.server.config.JwtTokenUtil;
+import com.cerner.server.model.JwtRequest;
+import com.cerner.server.model.JwtResponse;
+import com.cerner.server.model.UserDataStoringObject;
+/**
+ * This contains the different methods the post requests will handle 
+ */
+@RestController
+@CrossOrigin
+<span class="fc" id="L24">public class JwtAuthenticationController {</span>
+
+	@Autowired
+	private AuthenticationManager authenticationManager;
+	@Autowired
+	private JwtTokenUtil jwtTokenUtil;
+	@Autowired
+	private JwtUserDetailsService userDetailsService;
+	/**
+	 * @param authenticationRequest made by the post request to validate the token 
+	 * @return response if a valid token is generated after authentication
+	 */
+	@RequestMapping(value = &quot;/authenticate&quot;, method = RequestMethod.POST)
+	public ResponseEntity&lt;?&gt; createAuthenticationToken(@RequestBody JwtRequest authenticationRequest) throws Exception {
+<span class="fc" id="L38">		authenticate(authenticationRequest.getUsername(), authenticationRequest.getPassword());</span>
+<span class="fc" id="L39">		final UserDetails userDetails = userDetailsService</span>
+<span class="fc" id="L40">				.loadUserByUsername(authenticationRequest.getUsername());</span>
+<span class="fc" id="L41">		final String token = jwtTokenUtil.generateToken(userDetails);</span>
+<span class="fc" id="L42">		return ResponseEntity.ok(new JwtResponse(token));</span>
+	}
+	/**
+	 * @param user credentials entered in the form.
+	 * @return response with the user credentials if it has been successfully stored.
+	 */
+	@RequestMapping(value = &quot;/register&quot;, method = RequestMethod.POST)
+	public ResponseEntity&lt;?&gt; saveUser(@RequestBody UserDataStoringObject user) throws Exception {
+<span class="fc" id="L50">		return ResponseEntity.ok(userDetailsService.save(user));</span>
+	}
+	private void authenticate(String username, String password) throws Exception {
+		try {
+<span class="fc" id="L54">			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));</span>
+<span class="fc" id="L55">		} catch (BadCredentialsException e) {</span>
+<span class="fc" id="L56">			throw new Exception(&quot;INVALID_CREDENTIALS&quot;, e);</span>
+<span class="fc" id="L57">		}</span>
+<span class="fc" id="L58">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
